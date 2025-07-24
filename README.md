@@ -160,12 +160,11 @@ dotnet build Source/Project.csproj --configuration Release
 - **Author**: ProgrammerLily
 - **Version**: 1.0.1
 - **RimWorld Version**: 1.6+
-- **License**: [License info if applicable]
+- **License**: MIT License
 
 ## Links
 
 - **GitHub**: https://github.com/sam2332/Rimworld-ComfortableFishing
-- **Steam Workshop**: [Workshop link when published]
 - **Bug Reports**: Use GitHub Issues
 
 ---
