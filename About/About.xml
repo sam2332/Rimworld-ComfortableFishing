@@ -3,7 +3,6 @@
     <name>[PL] Comfortable Fishing</name>
     <author>ProgrammerLily</author>
     <supportedVersions>
-        <li>1.5</li>
         <li>1.6</li>
     </supportedVersions>
     <modDependencies>
@@ -32,5 +31,5 @@ Features:
 The mod automatically detects any chair (anything with isSittable property) from any mod, making it fully compatible with furniture mods.</description>
     <packageId>programmerLily.comfortableFishing</packageId>
     <url>https://github.com/sam2332/Rimworld-ComfortableFishing</url>
-    <modVersion>1.0.0</modVersion>
+    <modVersion>1.0.1</modVersion>
 </ModMetaData>
