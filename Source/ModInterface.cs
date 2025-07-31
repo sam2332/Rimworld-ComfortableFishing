@@ -139,7 +139,9 @@ namespace ComfortableFishing
                     "If checked, chairs must be adjacent to fishing zones to provide bonuses (since chairs can't be placed in water).");
 
                 listingStandard.Label("Max Chair Distance from Fishing Zone: " + Settings.maxChairDistance);
-                Settings.maxChairDistance = (int)listingStandard.Slider(Settings.maxChairDistance, 0, 5);
+                int newDistance = (int)listingStandard.Slider(Settings.maxChairDistance, 0, 5);
+                // Ensure the value is within expected bounds
+                Settings.maxChairDistance = Mathf.Clamp(newDistance, 0, 5);
                 
                 listingStandard.CheckboxLabeled("Show Bonus Alert Messages", ref Settings.showBonusAlert,
                     "If checked, shows alert messages when fishing bonuses are active.");

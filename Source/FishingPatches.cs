@@ -90,10 +90,8 @@ namespace ComfortableFishing
                                 // Only show message if in game (not during loading)
                                 if (Current.ProgramState == ProgramState.Playing && PawnUtility.ShouldSendNotificationAbout(pawn))
                                 {
-                                    string qualityInfo = ComfortableFishingMod.Settings.enableChairQualityBonuses ? 
-                                        $" - {FishingChairUtility.GetChairQualityInfo(chair)}" : "";
                                     string message = pawn.LabelShort + " is fishing comfortably from a chair (+" + 
-                                                   ((speedBonus - 1f) * 100f).ToString("F0") + "% speed)" + qualityInfo;
+                                                   ((speedBonus - 1f) * 100f).ToString("F0") + "% speed)" ;
                                     Messages.Message(message, pawn, MessageTypeDefOf.PositiveEvent, false);
                                 }
                             }
@@ -202,9 +200,7 @@ namespace ComfortableFishing
                         // Show bonus alert if enabled
                         if (ComfortableFishingMod.Settings.showBonusAlert && PawnUtility.ShouldSendNotificationAbout(pawn))
                         {
-                            string qualityInfo = ComfortableFishingMod.Settings.enableChairQualityBonuses ? 
-                                $" ({FishingChairUtility.GetChairQualityInfo(chair)})" : "";
-                            Messages.Message("Seated Fishing Bonus Granted: " + pawn.LabelShort + " caught extra fish from chair comfort!" + qualityInfo,
+                                Messages.Message("Seated Fishing: " + pawn.LabelShort + " caught extra fish from chair comfort!",
                                 pawn, MessageTypeDefOf.PositiveEvent, false);
                         }
                     }

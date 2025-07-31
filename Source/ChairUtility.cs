@@ -184,25 +184,6 @@ namespace ComfortableFishing
             }
         }
 
-        /// <summary>
-        /// Gets the chair quality info string for UI display
-        /// </summary>
-        public static string GetChairQualityInfo(Building chair)
-        {
-            if (!ComfortableFishingMod.Settings.enableChairQualityBonuses || chair == null)
-                return "";
-
-            try
-            {
-                float chairComfort = chair.GetStatValue(StatDefOf.Comfort, true);
-                float multiplier = GetChairQualityMultiplier(chair);
-                
-                return $"Chair Comfort: {chairComfort:F2} (Quality Multiplier: {multiplier:F2}x)";
-            }
-            catch
-            {
-                return "";
-            }
-        }
+       
     }
 }

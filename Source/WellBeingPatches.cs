@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
@@ -41,7 +42,13 @@ namespace ComfortableFishing
                         
                         // Give recreation (TickRare is called every 250 ticks, so multiply accordingly)
                         float recreationGain = ComfortableFishingMod.Settings.recreationGainRate * 250f * qualityMultiplier;
-                        pawn.needs.joy.GainJoy(recreationGain, null); // null JoyKindDef means general joy
+                        
+                        // Use meditative joy kind if available, fallback to first available joy kind
+                        JoyKindDef joyKind = JoyKindDefOf.Meditative ?? DefDatabase<JoyKindDef>.AllDefsListForReading?.FirstOrDefault();
+                        if (joyKind != null)
+                        {
+                            pawn.needs.joy.GainJoy(recreationGain, joyKind); // Fishing is meditative
+                        }
                     }
                 }
             }

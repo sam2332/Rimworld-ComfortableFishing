@@ -77,6 +77,20 @@ namespace ComfortableFishing
             Scribe_Values.Look(ref requireChairInZone, "requireChairInZone", true);
             Scribe_Values.Look(ref maxChairDistance, "maxChairDistance", 2);
             Scribe_Values.Look(ref showBonusAlert, "showBonusAlert", true);
+            
+            // Validate loaded values to ensure they're within acceptable bounds
+            maxChairDistance = Mathf.Clamp(maxChairDistance, 0, 5);
+            yieldMultiplier = Mathf.Clamp(yieldMultiplier, 1.0f, 2.0f);
+            speedMultiplier = Mathf.Clamp(speedMultiplier, 1.0f, 2.0f);
+            recreationGainRate = Mathf.Clamp(recreationGainRate, 0.001f, 0.05f);
+            comfortLevel = Mathf.Clamp(comfortLevel, 0.1f, 1.0f);
+            stressReductionFactor = Mathf.Clamp(stressReductionFactor, 0.1f, 1.0f);
+            fishingSkillMultiplier = Mathf.Clamp(fishingSkillMultiplier, 1.0f, 3.0f);
+            intellectualSkillRate = Mathf.Clamp(intellectualSkillRate, 0.001f, 0.05f);
+            artisticSkillRate = Mathf.Clamp(artisticSkillRate, 0.001f, 0.05f);
+            chairQualityMultiplier = Mathf.Clamp(chairQualityMultiplier, 1.0f, 3.0f);
+            baseChairComfort = Mathf.Clamp(baseChairComfort, 0.3f, 0.8f);
+            
             base.ExposeData();
         }
     }

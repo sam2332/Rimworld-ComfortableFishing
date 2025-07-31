@@ -159,6 +159,34 @@ The mod has been refactored into a **single-use module design** for better maint
 9. Test performance with multiple pawns fishing simultaneously
 10. Verify skill multipliers work correctly (check Animals skill XP gain rates)
 
+## Bug Fixes and Patches
+
+### Recreation Patch NullReferenceException Fix (July 31, 2025)
+**Issue**: Recreation bonus was causing NullReferenceException due to passing `null` JoyKindDef to `GainJoy()` method.
+
+**Root Cause**: The `Need_Joy.GainJoy()` method requires a valid `JoyKindDef` to access the `JoyToleranceSet` system. Passing `null` caused the game to crash when trying to calculate joy tolerance factors.
+
+**Solution Implemented**:
+- **Primary Fix**: Changed `GainJoy(recreationGain, null)` to use `JoyKindDefOf.Meditative`
+- **Rationale**: Fishing is inherently a meditative, calming activity - perfect match for meditative joy type
+- **Safety Fallback**: Added null checking with fallback to first available JoyKindDef if Meditative is somehow null
+- **Error Handling**: Enhanced try-catch block already captures any remaining edge cases
+
+**Code Changes**:
+```csharp
+// Before (causing crash):
+pawn.needs.joy.GainJoy(recreationGain, null);
+
+// After (fixed):
+JoyKindDef joyKind = JoyKindDefOf.Meditative ?? DefDatabase<JoyKindDef>.AllDefsListForReading?.FirstOrDefault();
+if (joyKind != null)
+{
+    pawn.needs.joy.GainJoy(recreationGain, joyKind);
+}
+```
+
+**Testing**: Build successful, no compilation errors. Fix should resolve all recreation-related crashes.
+
 ## Future Enhancement Ideas
 1. **Joy Kind Integration**: Specify specific joy types for recreation bonus
 2. **Thought System**: Add custom thoughts for chair fishing experience
