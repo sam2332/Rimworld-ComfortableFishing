@@ -1,7 +1,7 @@
 # Comfortable Fishing Mod - Implementation Summary
 
 ## Overview
-Successfully implemented a RimWorld mod that provides fishing bonuses when pawns fish from chairs. The mod is designed to work with **any chair from any mod** by detecting the universal `isSittable` property.
+Successfully implemented a RimWorld mod that provides multiple configurable bonuses when pawns fish from chairs. The mod is designed to work with **any chair from any mod** by detecting the universal `isSittable` property.
 
 ## Key Features Implemented
 
@@ -20,19 +20,37 @@ Successfully implemented a RimWorld mod that provides fishing bonuses when pawns
 - **Multiple Validation Checks**: Line of sight, reservation availability, and zone proximity
 - **Fallback Logic**: Won't suggest chairs if basic reservations fail
 
-### 4. Fishing Bonuses
+### 4. Multiple Bonus Types (NEW!)
+Users can now configure individual bonuses with separate toggles and amounts:
+
+#### A. Bonus Fish (Original Feature)
 - **Yield Bonus**: Configurable multiplier (1.0x - 2.0x) for extra fish caught
 - **Speed Bonus**: Configurable multiplier (1.0x - 2.0x) for faster fishing
 - **Real-time Application**: Bonuses applied during fishing job execution
 
-### 4. User Interface & Settings
-- **Mod Settings Menu**: Accessible via Options → Mod Settings → Comfortable Fishing
-- **Enable/Disable**: Toggle chair fishing bonuses on/off
-- **Adjustable Multipliers**: Sliders for yield and speed bonuses
-- **Zone Requirements**: Option to require chairs near fishing zones
-- **Alert Messages**: Optional "Seated Fishing Bonus Granted" notifications
+#### B. Recreation Bonus (NEW!)
+- **Recreation Gain**: Pawns gain joy/recreation over time while fishing from chairs
+- **Configurable Rate**: 0.001 - 0.05 recreation per tick (adjustable via slider)
+- **Automatic Application**: Uses Pawn.TickRare for efficient performance
 
-### 5. Smart Pawn Behavior
+#### C. Comfort Bonus (NEW!)
+- **Comfort Override**: Provides high comfort level while fishing from chairs
+- **Configurable Level**: 0.1 - 1.0 comfort level (adjustable via slider)
+- **Real-time Effect**: Overrides natural comfort calculation during chair fishing
+
+#### D. Stress Reduction (NEW!)
+- **Mental Break Prevention**: Reduces chance of mental breaks while fishing from chairs
+- **Configurable Reduction**: 10% - 90% stress reduction (adjustable via slider)
+- **All Break Types**: Affects minor, major, and extreme mental break thresholds
+
+### 5. Enhanced User Interface & Settings
+- **Mod Settings Menu**: Accessible via Options → Mod Settings → Comfortable Fishing
+- **Master Toggle**: Enable/disable all chair fishing bonuses
+- **Individual Toggles**: Separate enable/disable for each bonus type
+- **Color-Coded Sections**: Easy-to-navigate settings with colored headers
+- **Detailed Tooltips**: Clear explanations for each setting
+
+### 6. Smart Pawn Behavior
 - **Chair Preference**: Pawns will prefer chairs when available for fishing
 - **Automatic Detection**: System automatically detects when pawns are sitting while fishing
 - **Validation**: Only chairs adjacent to fishing zones provide bonuses (if enabled)
@@ -40,20 +58,41 @@ Successfully implemented a RimWorld mod that provides fishing bonuses when pawns
 ## Technical Implementation
 
 ### Harmony Patches
-1. **JobDriver_Fish.MakeNewToils**: Modifies fishing speed when using chairs
-2. **FishingUtility.GetCatchesFor**: Applies yield bonus to fish catches
+1. **JobDriver_Fish.MakeNewToils**: Modifies fishing speed when using chairs (Fish Bonus)
+2. **FishingUtility.GetCatchesFor**: Applies yield bonus to fish catches (Fish Bonus)
 3. **WorkGiver_Fish.BestStandSpotFor**: Suggests chair positions for fishing
+4. **Pawn.TickRare**: Provides recreation gain over time (Recreation Bonus)
+5. **Need_Comfort.CurInstantLevel**: Overrides comfort level during chair fishing (Comfort Bonus)
+6. **MentalBreaker.BreakThreshold[Minor/Major/Extreme]**: Reduces mental break chance (Stress Reduction)
 
 ### Chair Detection Logic
 - **Sitting Detection**: `!pawn.pather.MovingNow` + `PawnPosture.Standing` + `isSittable` building
 - **Zone Proximity**: Checks distance to fishing zone cells
 - **Validation**: Ensures chair is accessible and not forbidden
 
-### Configuration Options
+### New Configuration Options
 ```csharp
+// Master toggle
 - enableChairFishingBonus: true/false
+
+// Bonus Fish Settings
+- enableFishBonus: true/false (default: true)
 - yieldMultiplier: 1.0f - 2.0f (default 1.25f = +25% yield)
 - speedMultiplier: 1.0f - 2.0f (default 1.15f = +15% speed)
+
+// Recreation Settings  
+- enableRecreationBonus: true/false (default: false)
+- recreationGainRate: 0.001f - 0.05f (default: 0.01f per tick)
+
+// Comfort Settings
+- enableComfortBonus: true/false (default: false)
+- comfortLevel: 0.1f - 1.0f (default: 0.8f)
+
+// Stress Reduction Settings
+- enableStressReduction: true/false (default: false)
+- stressReductionFactor: 0.1f - 1.0f (default: 0.5f = 50% reduction)
+
+// General Settings
 - requireChairInZone: true/false
 - maxChairDistance: 0-5 tiles (default 2)
 - showBonusAlert: true/false
@@ -61,27 +100,35 @@ Successfully implemented a RimWorld mod that provides fishing bonuses when pawns
 
 ## User Experience
 1. **Immediate Compatibility**: Works with existing chairs from any mod
-2. **Clear Feedback**: Optional alert messages when bonuses are granted
-3. **Balanced Bonuses**: Modest default bonuses that reward setup without being overpowered
-4. **Flexible Configuration**: Users can adjust or disable bonuses as desired
+2. **Flexible Configuration**: Users can choose any combination of bonuses
+3. **Clear Feedback**: Optional alert messages when bonuses are granted
+4. **Balanced Bonuses**: Modest default bonuses that reward setup without being overpowered
+5. **Intuitive Interface**: Color-coded settings sections for easy navigation
 
-## Files Created
-- `Source/ComfortableFishing.cs` - Main mod implementation
-- `About/About.xml` - Mod metadata and description
-- `About/Preview.png` - Mod preview image
-- `Assemblies/ComfortableFishing.dll` - Compiled mod assembly
+## Reflection-Based Implementation
+- **Future-Proof**: Uses reflection to access private fields for compatibility
+- **Safe Access**: Proper error handling for reflection calls
+- **Mod Compatibility**: Avoids direct dependencies on internal implementations
+
+## Files Modified
+- `Source/ComfortableFishing.cs` - Main mod implementation with new bonus systems
+- `IMPLEMENTATION_SUMMARY.md` - Updated documentation
 
 ## Testing Recommendations
-1. Test with vanilla chairs (armchair, dining chair, etc.)
-2. Test with modded furniture (any mod with chairs)
-3. Verify bonuses work correctly near fishing zones
-4. Check settings menu functionality
-5. Confirm alert messages appear when enabled
+1. Test each bonus type individually and in combination
+2. Verify toggles work correctly in mod settings
+3. Test with vanilla chairs (armchair, dining chair, etc.)
+4. Test with modded furniture (any mod with chairs)
+5. Verify bonuses work correctly near fishing zones
+6. Check settings menu functionality and sliders
+7. Confirm alert messages appear when enabled
+8. Test performance with multiple pawns fishing simultaneously
 
 ## Future Enhancement Ideas
-If you want to make chairs placeable in shallow water:
-1. Create terrain patches for shallow water terrains
-2. Add chair affordances to water terrains
-3. Potentially create water-specific chair variants
+1. **Joy Kind Integration**: Specify specific joy types for recreation bonus
+2. **Thought System**: Add custom thoughts for chair fishing experience
+3. **Skill Bonuses**: Add configurable skill gain multipliers
+4. **Temperature Comfort**: Factor in temperature comfort while fishing
+5. **Water Chair Variants**: Create water-specific chair variants for deeper immersion
 
-The mod is now ready for use and should work seamlessly with any chair from any mod!
+The mod now offers comprehensive customization options, allowing users to tailor their fishing experience exactly to their preferences!

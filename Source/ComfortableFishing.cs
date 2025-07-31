@@ -23,9 +23,27 @@ namespace ComfortableFishing
 
     public class ComfortableFishingSettings : ModSettings
     {
+        // Master toggle
         public bool enableChairFishingBonus = true;
+        
+        // Bonus Fish Settings
+        public bool enableFishBonus = true;
         public float yieldMultiplier = 1.25f;
         public float speedMultiplier = 1.15f;
+        
+        // Recreation Settings  
+        public bool enableRecreationBonus = false;
+        public float recreationGainRate = 0.01f; // Recreation gained per tick
+        
+        // Comfort Settings
+        public bool enableComfortBonus = false;
+        public float comfortLevel = 0.8f; // Comfort level while fishing from chair
+        
+        // Stress Reduction Settings
+        public bool enableStressReduction = false;
+        public float stressReductionFactor = 0.5f; // Multiplier for mental break chance
+        
+        // General Settings
         public bool requireChairInZone = true;
         public int maxChairDistance = 2;
         public bool showBonusAlert = true;
@@ -33,8 +51,25 @@ namespace ComfortableFishing
         public override void ExposeData()
         {
             Scribe_Values.Look(ref enableChairFishingBonus, "enableChairFishingBonus", true);
+            
+            // Bonus Fish
+            Scribe_Values.Look(ref enableFishBonus, "enableFishBonus", true);
             Scribe_Values.Look(ref yieldMultiplier, "yieldMultiplier", 1.25f);
             Scribe_Values.Look(ref speedMultiplier, "speedMultiplier", 1.15f);
+            
+            // Recreation
+            Scribe_Values.Look(ref enableRecreationBonus, "enableRecreationBonus", false);
+            Scribe_Values.Look(ref recreationGainRate, "recreationGainRate", 0.01f);
+            
+            // Comfort
+            Scribe_Values.Look(ref enableComfortBonus, "enableComfortBonus", false);
+            Scribe_Values.Look(ref comfortLevel, "comfortLevel", 0.8f);
+            
+            // Stress Reduction
+            Scribe_Values.Look(ref enableStressReduction, "enableStressReduction", false);
+            Scribe_Values.Look(ref stressReductionFactor, "stressReductionFactor", 0.5f);
+            
+            // General
             Scribe_Values.Look(ref requireChairInZone, "requireChairInZone", true);
             Scribe_Values.Look(ref maxChairDistance, "maxChairDistance", 2);
             Scribe_Values.Look(ref showBonusAlert, "showBonusAlert", true);
@@ -56,28 +91,78 @@ namespace ComfortableFishing
             Listing_Standard listingStandard = new Listing_Standard();
             listingStandard.Begin(inRect);
 
-            listingStandard.CheckboxLabeled("Enable Chair Fishing Bonus", ref Settings.enableChairFishingBonus, 
-                "When enabled, pawns fishing from chairs get bonuses to speed and yield.");
+            listingStandard.CheckboxLabeled("Enable Chair Fishing Bonuses", ref Settings.enableChairFishingBonus, 
+                "Master toggle for all chair fishing bonuses.");
 
             if (Settings.enableChairFishingBonus)
             {
                 listingStandard.Gap();
-                listingStandard.Label("Yield Multiplier: " + Settings.yieldMultiplier.ToString("F2") + "x");
-                Settings.yieldMultiplier = listingStandard.Slider(Settings.yieldMultiplier, 1.0f, 2.0f);
+                
+                // Bonus Fish Section
+                listingStandard.Label("=== BONUS FISH ===".Colorize(Color.cyan));
+                listingStandard.CheckboxLabeled("Enable Fish Bonuses", ref Settings.enableFishBonus,
+                    "Get extra fish and faster fishing when using chairs.");
+                
+                if (Settings.enableFishBonus)
+                {
+                    listingStandard.Label("Yield Multiplier: " + Settings.yieldMultiplier.ToString("F2") + "x");
+                    Settings.yieldMultiplier = listingStandard.Slider(Settings.yieldMultiplier, 1.0f, 2.0f);
 
-                listingStandard.Label("Speed Multiplier: " + Settings.speedMultiplier.ToString("F2") + "x");
-                Settings.speedMultiplier = listingStandard.Slider(Settings.speedMultiplier, 1.0f, 2.0f);
-
+                    listingStandard.Label("Speed Multiplier: " + Settings.speedMultiplier.ToString("F2") + "x");
+                    Settings.speedMultiplier = listingStandard.Slider(Settings.speedMultiplier, 1.0f, 2.0f);
+                }
+                
                 listingStandard.Gap();
+                
+                // Recreation Section
+                listingStandard.Label("=== RECREATION ===".Colorize(Color.green));
+                listingStandard.CheckboxLabeled("Enable Recreation Bonus", ref Settings.enableRecreationBonus,
+                    "Pawns gain recreation/joy while fishing from chairs.");
+                
+                if (Settings.enableRecreationBonus)
+                {
+                    listingStandard.Label("Recreation Gain Rate: " + Settings.recreationGainRate.ToString("F3") + " per tick");
+                    Settings.recreationGainRate = listingStandard.Slider(Settings.recreationGainRate, 0.001f, 0.05f);
+                }
+                
+                listingStandard.Gap();
+                
+                // Comfort Section
+                listingStandard.Label("=== COMFORT ===".Colorize(Color.yellow));
+                listingStandard.CheckboxLabeled("Enable Comfort Bonus", ref Settings.enableComfortBonus,
+                    "Pawns get comfort while fishing from chairs.");
+                
+                if (Settings.enableComfortBonus)
+                {
+                    listingStandard.Label("Comfort Level: " + Settings.comfortLevel.ToString("F2"));
+                    Settings.comfortLevel = listingStandard.Slider(Settings.comfortLevel, 0.1f, 1.0f);
+                }
+                
+                listingStandard.Gap();
+                
+                // Stress Reduction Section
+                listingStandard.Label("=== STRESS REDUCTION ===".Colorize(Color.magenta));
+                listingStandard.CheckboxLabeled("Enable Stress Reduction", ref Settings.enableStressReduction,
+                    "Reduce mental break chance while fishing from chairs.");
+                
+                if (Settings.enableStressReduction)
+                {
+                    listingStandard.Label("Stress Reduction: " + ((1f - Settings.stressReductionFactor) * 100f).ToString("F0") + "% less mental breaks");
+                    Settings.stressReductionFactor = listingStandard.Slider(Settings.stressReductionFactor, 0.1f, 1.0f);
+                }
+                
+                listingStandard.Gap();
+                
+                // General Settings Section
+                listingStandard.Label("=== GENERAL SETTINGS ===".Colorize(Color.white));
                 listingStandard.CheckboxLabeled("Require Chair in Fishing Zone", ref Settings.requireChairInZone,
                     "If checked, chairs must be adjacent to fishing zones to provide bonuses (since chairs can't be placed in water).");
 
                 listingStandard.Label("Max Chair Distance from Fishing Zone: " + Settings.maxChairDistance);
                 Settings.maxChairDistance = (int)listingStandard.Slider(Settings.maxChairDistance, 0, 5);
                 
-                listingStandard.Gap();
                 listingStandard.CheckboxLabeled("Show Bonus Alert Messages", ref Settings.showBonusAlert,
-                    "If checked, shows 'Seated Fishing Bonus Granted' messages when fishing with chair bonuses.");
+                    "If checked, shows alert messages when fishing bonuses are active.");
             }
 
             listingStandard.End();
@@ -247,7 +332,8 @@ namespace ComfortableFishing
                     return;
 
                 // Check if settings are available and feature is enabled
-                if (ComfortableFishingMod.Settings?.enableChairFishingBonus != true)
+                if (ComfortableFishingMod.Settings?.enableChairFishingBonus != true || 
+                    ComfortableFishingMod.Settings?.enableFishBonus != true)
                     return;
 
                 var toils = __result.ToList();
@@ -332,7 +418,9 @@ namespace ComfortableFishing
         {
             try
             {
-                if (!ComfortableFishingMod.Settings.enableChairFishingBonus || __result == null || __result.Count == 0)
+                if (!ComfortableFishingMod.Settings.enableChairFishingBonus || 
+                    !ComfortableFishingMod.Settings.enableFishBonus || 
+                    __result == null || __result.Count == 0)
                     return;
 
                 if (animalFishing || pawn?.Map == null)
@@ -418,6 +506,214 @@ namespace ComfortableFishing
             catch (Exception ex)
             {
                 Log.Error("[Comfortable Fishing] Error in BestStandSpotFor patch: " + ex);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Harmony patch to provide recreation bonus while fishing from chairs
+    /// Patches Pawn tick to give recreation/joy when fishing from chairs
+    /// </summary>
+    [HarmonyPatch(typeof(Pawn), "TickRare")]
+    public static class Pawn_Recreation_Patch
+    {
+        static void Postfix(Pawn __instance)
+        {
+            try
+            {
+                if (!ComfortableFishingMod.Settings.enableChairFishingBonus || 
+                    !ComfortableFishingMod.Settings.enableRecreationBonus)
+                    return;
+
+                Pawn pawn = __instance;
+                if (pawn?.needs?.joy == null || pawn?.CurJob?.def?.defName != "Fish")
+                    return;
+
+                if (!FishingChairUtility.IsPawnSittingOnChair(pawn))
+                    return;
+
+                Building chair = FishingChairUtility.GetChairPawnIsSittingOn(pawn);
+                if (chair != null)
+                {
+                    Job currentJob = pawn.CurJob;
+                    if (currentJob?.targetA.Cell != null && 
+                        FishingChairUtility.IsChairValidForFishing(chair.Position, currentJob.targetA.Cell, pawn.Map))
+                    {
+                        // Give recreation (TickRare is called every 250 ticks, so multiply accordingly)
+                        float recreationGain = ComfortableFishingMod.Settings.recreationGainRate * 250f;
+                        pawn.needs.joy.GainJoy(recreationGain, null); // null JoyKindDef means general joy
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error("[Comfortable Fishing] Error in Recreation patch: " + ex);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Harmony patch to provide comfort bonus while fishing from chairs
+    /// Patches the comfort system to provide high comfort when fishing from chairs
+    /// </summary>
+    [HarmonyPatch(typeof(Need_Comfort), "CurInstantLevel", MethodType.Getter)]
+    public static class Need_Comfort_ChairFishing_Patch
+    {
+        static void Postfix(Need_Comfort __instance, ref float __result)
+        {
+            try
+            {
+                if (!ComfortableFishingMod.Settings.enableChairFishingBonus || 
+                    !ComfortableFishingMod.Settings.enableComfortBonus)
+                    return;
+
+                // Use reflection to access the private pawn field
+                var pawnField = typeof(Need).GetField("pawn", BindingFlags.NonPublic | BindingFlags.Instance);
+                if (pawnField == null) return;
+                
+                Pawn pawn = pawnField.GetValue(__instance) as Pawn;
+                if (pawn?.CurJob?.def?.defName != "Fish" || !FishingChairUtility.IsPawnSittingOnChair(pawn))
+                    return;
+
+                Building chair = FishingChairUtility.GetChairPawnIsSittingOn(pawn);
+                if (chair != null)
+                {
+                    Job currentJob = pawn.CurJob;
+                    if (currentJob?.targetA.Cell != null && 
+                        FishingChairUtility.IsChairValidForFishing(chair.Position, currentJob.targetA.Cell, pawn.Map))
+                    {
+                        // Override comfort level while fishing from chair
+                        __result = Mathf.Max(__result, ComfortableFishingMod.Settings.comfortLevel);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error("[Comfortable Fishing] Error in Comfort patch: " + ex);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Harmony patch to reduce stress/mental break chance while fishing from chairs
+    /// Patches MentalBreaker to reduce break chance during chair fishing
+    /// </summary>
+    [HarmonyPatch(typeof(MentalBreaker), "BreakThresholdExtreme", MethodType.Getter)]
+    public static class MentalBreaker_StressReduction_Patch
+    {
+        static void Postfix(MentalBreaker __instance, ref float __result)
+        {
+            try
+            {
+                if (!ComfortableFishingMod.Settings.enableChairFishingBonus || 
+                    !ComfortableFishingMod.Settings.enableStressReduction)
+                    return;
+
+                // Use reflection to access the private pawn field
+                var pawnField = typeof(MentalBreaker).GetField("pawn", BindingFlags.NonPublic | BindingFlags.Instance);
+                if (pawnField == null) return;
+                
+                Pawn pawn = pawnField.GetValue(__instance) as Pawn;
+                if (pawn?.CurJob?.def?.defName != "Fish" || !FishingChairUtility.IsPawnSittingOnChair(pawn))
+                    return;
+
+                Building chair = FishingChairUtility.GetChairPawnIsSittingOn(pawn);
+                if (chair != null)
+                {
+                    Job currentJob = pawn.CurJob;
+                    if (currentJob?.targetA.Cell != null && 
+                        FishingChairUtility.IsChairValidForFishing(chair.Position, currentJob.targetA.Cell, pawn.Map))
+                    {
+                        // Reduce break threshold (higher threshold = less likely to break)
+                        __result *= (1f / ComfortableFishingMod.Settings.stressReductionFactor);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error("[Comfortable Fishing] Error in Stress Reduction patch: " + ex);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Harmony patch to also reduce major mental break chance
+    /// </summary>
+    [HarmonyPatch(typeof(MentalBreaker), "BreakThresholdMajor", MethodType.Getter)]
+    public static class MentalBreaker_StressReductionMajor_Patch
+    {
+        static void Postfix(MentalBreaker __instance, ref float __result)
+        {
+            try
+            {
+                if (!ComfortableFishingMod.Settings.enableChairFishingBonus || 
+                    !ComfortableFishingMod.Settings.enableStressReduction)
+                    return;
+
+                // Use reflection to access the private pawn field
+                var pawnField = typeof(MentalBreaker).GetField("pawn", BindingFlags.NonPublic | BindingFlags.Instance);
+                if (pawnField == null) return;
+                
+                Pawn pawn = pawnField.GetValue(__instance) as Pawn;
+                if (pawn?.CurJob?.def?.defName != "Fish" || !FishingChairUtility.IsPawnSittingOnChair(pawn))
+                    return;
+
+                Building chair = FishingChairUtility.GetChairPawnIsSittingOn(pawn);
+                if (chair != null)
+                {
+                    Job currentJob = pawn.CurJob;
+                    if (currentJob?.targetA.Cell != null && 
+                        FishingChairUtility.IsChairValidForFishing(chair.Position, currentJob.targetA.Cell, pawn.Map))
+                    {
+                        // Reduce break threshold (higher threshold = less likely to break)
+                        __result *= (1f / ComfortableFishingMod.Settings.stressReductionFactor);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error("[Comfortable Fishing] Error in Major Stress Reduction patch: " + ex);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Harmony patch to also reduce minor mental break chance
+    /// </summary>
+    [HarmonyPatch(typeof(MentalBreaker), "BreakThresholdMinor", MethodType.Getter)]
+    public static class MentalBreaker_StressReductionMinor_Patch
+    {
+        static void Postfix(MentalBreaker __instance, ref float __result)
+        {
+            try
+            {
+                if (!ComfortableFishingMod.Settings.enableChairFishingBonus || 
+                    !ComfortableFishingMod.Settings.enableStressReduction)
+                    return;
+
+                // Use reflection to access the private pawn field
+                var pawnField = typeof(MentalBreaker).GetField("pawn", BindingFlags.NonPublic | BindingFlags.Instance);
+                if (pawnField == null) return;
+                
+                Pawn pawn = pawnField.GetValue(__instance) as Pawn;
+                if (pawn?.CurJob?.def?.defName != "Fish" || !FishingChairUtility.IsPawnSittingOnChair(pawn))
+                    return;
+
+                Building chair = FishingChairUtility.GetChairPawnIsSittingOn(pawn);
+                if (chair != null)
+                {
+                    Job currentJob = pawn.CurJob;
+                    if (currentJob?.targetA.Cell != null && 
+                        FishingChairUtility.IsChairValidForFishing(chair.Position, currentJob.targetA.Cell, pawn.Map))
+                    {
+                        // Reduce break threshold (higher threshold = less likely to break)
+                        __result *= (1f / ComfortableFishingMod.Settings.stressReductionFactor);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error("[Comfortable Fishing] Error in Minor Stress Reduction patch: " + ex);
             }
         }
     }
