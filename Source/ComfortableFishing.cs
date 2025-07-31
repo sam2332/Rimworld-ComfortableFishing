@@ -49,6 +49,11 @@ namespace ComfortableFishing
         public float intellectualSkillRate = 0.02f; // XP per tick for Intellectual 
         public float artisticSkillRate = 0.015f; // XP per tick for Artistic
         
+        // Chair Quality Bonus Settings
+        public bool enableChairQualityBonuses = false;
+        public float chairQualityMultiplier = 1.5f; // How much chair comfort affects bonuses (1.0 = no effect, 2.0 = double effect)
+        public float baseChairComfort = 0.5f; // Baseline comfort value for scaling (chairs below this get penalties)
+        
         // General Settings
         public bool requireChairInZone = true;
         public int maxChairDistance = 2;
@@ -80,6 +85,11 @@ namespace ComfortableFishing
             Scribe_Values.Look(ref fishingSkillMultiplier, "fishingSkillMultiplier", 2.0f);
             Scribe_Values.Look(ref intellectualSkillRate, "intellectualSkillRate", 0.02f);
             Scribe_Values.Look(ref artisticSkillRate, "artisticSkillRate", 0.015f);
+            
+            // Chair Quality Bonuses
+            Scribe_Values.Look(ref enableChairQualityBonuses, "enableChairQualityBonuses", false);
+            Scribe_Values.Look(ref chairQualityMultiplier, "chairQualityMultiplier", 1.5f);
+            Scribe_Values.Look(ref baseChairComfort, "baseChairComfort", 0.5f);
             
             // General
             Scribe_Values.Look(ref requireChairInZone, "requireChairInZone", true);
@@ -180,6 +190,26 @@ namespace ComfortableFishing
                     
                     listingStandard.Label("Artistic XP Rate: " + Settings.artisticSkillRate.ToString("F3") + " per tick");
                     Settings.artisticSkillRate = listingStandard.Slider(Settings.artisticSkillRate, 0.001f, 0.05f);
+                }
+                
+                listingStandard.Gap();
+                
+                // Chair Quality Bonuses Section
+                listingStandard.Label("=== CHAIR QUALITY BONUSES ===".Colorize(Color.green));
+                listingStandard.CheckboxLabeled("Enable Chair Quality Bonuses", ref Settings.enableChairQualityBonuses,
+                    "Higher quality/comfort chairs provide better bonuses.");
+                
+                if (Settings.enableChairQualityBonuses)
+                {
+                    listingStandard.Label("Quality Multiplier: " + Settings.chairQualityMultiplier.ToString("F1") + "x");
+                    Settings.chairQualityMultiplier = listingStandard.Slider(Settings.chairQualityMultiplier, 1.0f, 3.0f);
+                    
+                    listingStandard.Label("Base Comfort Level: " + Settings.baseChairComfort.ToString("F2"));
+                    Settings.baseChairComfort = listingStandard.Slider(Settings.baseChairComfort, 0.3f, 0.8f);
+                    
+                    Text.Font = GameFont.Tiny;
+                    listingStandard.Label("(Chairs above base comfort get bonus multipliers, chairs below get penalties)");
+                    Text.Font = GameFont.Small;
                 }
                 
                 listingStandard.Gap();
@@ -346,6 +376,62 @@ namespace ComfortableFishing
 
             return null;
         }
+
+        /// <summary>
+        /// Calculates the quality multiplier for a chair based on its comfort stat
+        /// </summary>
+        public static float GetChairQualityMultiplier(Building chair)
+        {
+            if (!ComfortableFishingMod.Settings.enableChairQualityBonuses || chair == null)
+                return 1.0f;
+
+            try
+            {
+                // Get the chair's comfort stat
+                float chairComfort = chair.GetStatValue(StatDefOf.Comfort, true);
+                float baseComfort = ComfortableFishingMod.Settings.baseChairComfort;
+                float qualityMultiplier = ComfortableFishingMod.Settings.chairQualityMultiplier;
+
+                // Calculate quality multiplier based on how much the chair's comfort deviates from base
+                // Formula: 1.0 + (chairComfort - baseComfort) * (qualityMultiplier - 1.0)
+                // Examples with base=0.5, multiplier=1.5:
+                // - Chair comfort 0.4: 1.0 + (0.4-0.5) * 0.5 = 0.95x (5% penalty)
+                // - Chair comfort 0.5: 1.0 + (0.5-0.5) * 0.5 = 1.0x (baseline)
+                // - Chair comfort 0.75: 1.0 + (0.75-0.5) * 0.5 = 1.125x (12.5% bonus)
+                // - Chair comfort 0.9: 1.0 + (0.9-0.5) * 0.5 = 1.2x (20% bonus)
+                
+                float multiplier = 1.0f + (chairComfort - baseComfort) * (qualityMultiplier - 1.0f);
+                
+                // Clamp to reasonable bounds (0.5x to 2.0x)
+                return Mathf.Clamp(multiplier, 0.5f, 2.0f);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("[Comfortable Fishing] Error calculating chair quality multiplier: " + ex);
+                return 1.0f;
+            }
+        }
+
+        /// <summary>
+        /// Gets the chair quality info string for UI display
+        /// </summary>
+        public static string GetChairQualityInfo(Building chair)
+        {
+            if (!ComfortableFishingMod.Settings.enableChairQualityBonuses || chair == null)
+                return "";
+
+            try
+            {
+                float chairComfort = chair.GetStatValue(StatDefOf.Comfort, true);
+                float multiplier = GetChairQualityMultiplier(chair);
+                
+                return $"Chair Comfort: {chairComfort:F2} (Quality Multiplier: {multiplier:F2}x)";
+            }
+            catch
+            {
+                return "";
+            }
+        }
     }
 
     /// <summary>
@@ -408,6 +494,11 @@ namespace ComfortableFishing
                 if (ComfortableFishingMod.Settings.enableFishBonus)
                 {
                     float speedBonus = ComfortableFishingMod.Settings.speedMultiplier;
+                    
+                    // Apply chair quality multiplier if enabled
+                    float qualityMultiplier = FishingChairUtility.GetChairQualityMultiplier(chair);
+                    speedBonus = 1.0f + ((speedBonus - 1.0f) * qualityMultiplier);
+                    
                     if (speedBonus > 1.0f)
                     {
                         // Try to modify the toil's duration using reflection
@@ -423,8 +514,10 @@ namespace ComfortableFishing
                                 // Only show message if in game (not during loading)
                                 if (Current.ProgramState == ProgramState.Playing && PawnUtility.ShouldSendNotificationAbout(pawn))
                                 {
+                                    string qualityInfo = ComfortableFishingMod.Settings.enableChairQualityBonuses ? 
+                                        $" - {FishingChairUtility.GetChairQualityInfo(chair)}" : "";
                                     string message = pawn.LabelShort + " is fishing comfortably from a chair (+" + 
-                                                   ((speedBonus - 1f) * 100f).ToString("F0") + "% speed)";
+                                                   ((speedBonus - 1f) * 100f).ToString("F0") + "% speed)" + qualityInfo;
                                     Messages.Message(message, pawn, MessageTypeDefOf.PositiveEvent, false);
                                 }
                             }
@@ -451,23 +544,30 @@ namespace ComfortableFishing
                             if (currentChair != null && 
                                 FishingChairUtility.IsChairValidForFishing(currentChair.Position, fishingSpot, pawn.Map))
                             {
+                                // Apply chair quality multiplier if enabled
+                                float qualityMultiplier = FishingChairUtility.GetChairQualityMultiplier(currentChair);
+                                
                                 // Enhanced fishing (Animals) skill - multiply the normal gain
-                                float extraFishingXP = 0.025f * (ComfortableFishingMod.Settings.fishingSkillMultiplier - 1.0f);
+                                float fishingMultiplier = ComfortableFishingMod.Settings.fishingSkillMultiplier;
+                                fishingMultiplier = 1.0f + ((fishingMultiplier - 1.0f) * qualityMultiplier);
+                                float extraFishingXP = 0.025f * (fishingMultiplier - 1.0f);
                                 if (extraFishingXP > 0f)
                                 {
                                     pawn.skills.Learn(SkillDefOf.Animals, extraFishingXP);
                                 }
 
                                 // Intellectual skill - contemplation and observation
-                                if (ComfortableFishingMod.Settings.intellectualSkillRate > 0f)
+                                float intellectualRate = ComfortableFishingMod.Settings.intellectualSkillRate * qualityMultiplier;
+                                if (intellectualRate > 0f)
                                 {
-                                    pawn.skills.Learn(SkillDefOf.Intellectual, ComfortableFishingMod.Settings.intellectualSkillRate);
+                                    pawn.skills.Learn(SkillDefOf.Intellectual, intellectualRate);
                                 }
 
                                 // Artistic skill - inspiration from nature
-                                if (ComfortableFishingMod.Settings.artisticSkillRate > 0f)
+                                float artisticRate = ComfortableFishingMod.Settings.artisticSkillRate * qualityMultiplier;
+                                if (artisticRate > 0f)
                                 {
-                                    pawn.skills.Learn(SkillDefOf.Artistic, ComfortableFishingMod.Settings.artisticSkillRate);
+                                    pawn.skills.Learn(SkillDefOf.Artistic, artisticRate);
                                 }
                             }
                         }
@@ -510,6 +610,10 @@ namespace ComfortableFishing
                         // Apply yield bonus
                         float yieldBonus = ComfortableFishingMod.Settings.yieldMultiplier;
                         
+                        // Apply chair quality multiplier if enabled
+                        float qualityMultiplier = FishingChairUtility.GetChairQualityMultiplier(chair);
+                        yieldBonus = 1.0f + ((yieldBonus - 1.0f) * qualityMultiplier);
+                        
                         foreach (Thing thing in __result.ToList())
                         {
                             int bonusAmount = Mathf.RoundToInt(thing.stackCount * (yieldBonus - 1f));
@@ -522,7 +626,9 @@ namespace ComfortableFishing
                         // Show bonus alert if enabled
                         if (ComfortableFishingMod.Settings.showBonusAlert && PawnUtility.ShouldSendNotificationAbout(pawn))
                         {
-                            Messages.Message("Seated Fishing Bonus Granted: " + pawn.LabelShort + " caught extra fish from chair comfort!",
+                            string qualityInfo = ComfortableFishingMod.Settings.enableChairQualityBonuses ? 
+                                $" ({FishingChairUtility.GetChairQualityInfo(chair)})" : "";
+                            Messages.Message("Seated Fishing Bonus Granted: " + pawn.LabelShort + " caught extra fish from chair comfort!" + qualityInfo,
                                 pawn, MessageTypeDefOf.PositiveEvent, false);
                         }
                     }
@@ -614,8 +720,11 @@ namespace ComfortableFishing
                     if (currentJob?.targetA.Cell != null && 
                         FishingChairUtility.IsChairValidForFishing(chair.Position, currentJob.targetA.Cell, pawn.Map))
                     {
+                        // Apply chair quality multiplier if enabled
+                        float qualityMultiplier = FishingChairUtility.GetChairQualityMultiplier(chair);
+                        
                         // Give recreation (TickRare is called every 250 ticks, so multiply accordingly)
-                        float recreationGain = ComfortableFishingMod.Settings.recreationGainRate * 250f;
+                        float recreationGain = ComfortableFishingMod.Settings.recreationGainRate * 250f * qualityMultiplier;
                         pawn.needs.joy.GainJoy(recreationGain, null); // null JoyKindDef means general joy
                     }
                 }
@@ -657,8 +766,12 @@ namespace ComfortableFishing
                     if (currentJob?.targetA.Cell != null && 
                         FishingChairUtility.IsChairValidForFishing(chair.Position, currentJob.targetA.Cell, pawn.Map))
                     {
+                        // Apply chair quality multiplier if enabled
+                        float qualityMultiplier = FishingChairUtility.GetChairQualityMultiplier(chair);
+                        float adjustedComfortLevel = ComfortableFishingMod.Settings.comfortLevel * qualityMultiplier;
+                        
                         // Override comfort level while fishing from chair
-                        __result = Mathf.Max(__result, ComfortableFishingMod.Settings.comfortLevel);
+                        __result = Mathf.Max(__result, adjustedComfortLevel);
                     }
                 }
             }
@@ -699,8 +812,13 @@ namespace ComfortableFishing
                     if (currentJob?.targetA.Cell != null && 
                         FishingChairUtility.IsChairValidForFishing(chair.Position, currentJob.targetA.Cell, pawn.Map))
                     {
+                        // Apply chair quality multiplier if enabled
+                        float qualityMultiplier = FishingChairUtility.GetChairQualityMultiplier(chair);
+                        float adjustedStressReduction = ComfortableFishingMod.Settings.stressReductionFactor;
+                        adjustedStressReduction = 1.0f + ((adjustedStressReduction - 1.0f) * qualityMultiplier);
+                        
                         // Reduce break threshold (higher threshold = less likely to break)
-                        __result *= (1f / ComfortableFishingMod.Settings.stressReductionFactor);
+                        __result *= (1f / adjustedStressReduction);
                     }
                 }
             }
@@ -740,8 +858,13 @@ namespace ComfortableFishing
                     if (currentJob?.targetA.Cell != null && 
                         FishingChairUtility.IsChairValidForFishing(chair.Position, currentJob.targetA.Cell, pawn.Map))
                     {
+                        // Apply chair quality multiplier if enabled
+                        float qualityMultiplier = FishingChairUtility.GetChairQualityMultiplier(chair);
+                        float adjustedStressReduction = ComfortableFishingMod.Settings.stressReductionFactor;
+                        adjustedStressReduction = 1.0f + ((adjustedStressReduction - 1.0f) * qualityMultiplier);
+                        
                         // Reduce break threshold (higher threshold = less likely to break)
-                        __result *= (1f / ComfortableFishingMod.Settings.stressReductionFactor);
+                        __result *= (1f / adjustedStressReduction);
                     }
                 }
             }
@@ -781,8 +904,13 @@ namespace ComfortableFishing
                     if (currentJob?.targetA.Cell != null && 
                         FishingChairUtility.IsChairValidForFishing(chair.Position, currentJob.targetA.Cell, pawn.Map))
                     {
+                        // Apply chair quality multiplier if enabled
+                        float qualityMultiplier = FishingChairUtility.GetChairQualityMultiplier(chair);
+                        float adjustedStressReduction = ComfortableFishingMod.Settings.stressReductionFactor;
+                        adjustedStressReduction = 1.0f + ((adjustedStressReduction - 1.0f) * qualityMultiplier);
+                        
                         // Reduce break threshold (higher threshold = less likely to break)
-                        __result *= (1f / ComfortableFishingMod.Settings.stressReductionFactor);
+                        __result *= (1f / adjustedStressReduction);
                     }
                 }
             }
