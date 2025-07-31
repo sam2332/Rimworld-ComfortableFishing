@@ -15,13 +15,19 @@ namespace ComfortableFishing
 
         public override void DoSettingsWindowContents(Rect inRect)
         {
+            // Add title at the top
+          
+            
+            // Create space for the title by reducing the content area
+            float titleHeight = 25f; // Title + some padding
+            Rect contentRect = new Rect(inRect.x, inRect.y + titleHeight, inRect.width, inRect.height - titleHeight);
+            
             // Calculate the total height needed for all content
             float totalHeight = CalculateContentHeight();
             
-            Rect viewRect = new Rect(0f, 0f, inRect.width - 20f, totalHeight);
-            Rect scrollRect = new Rect(0f, 0f, inRect.width, inRect.height);
+            Rect viewRect = new Rect(0f, 0f, contentRect.width - 20f, totalHeight);
             
-            Widgets.BeginScrollView(scrollRect, ref scrollPosition, viewRect);
+            Widgets.BeginScrollView(contentRect, ref scrollPosition, viewRect);
             
             Listing_Standard listingStandard = new Listing_Standard();
             listingStandard.Begin(viewRect);
@@ -150,55 +156,55 @@ namespace ComfortableFishing
             
             if (Settings.enableChairFishingBonus)
             {
-                height += 40f; // Gap + bonus fish section header
-                height += 30f; // Enable fish bonuses checkbox
+                height += 55f; // Gap + bonus fish section header
+                height += 50f; // Enable fish bonuses checkbox
                 
                 if (Settings.enableFishBonus)
                 {
                     height += 60f; // 2 sliders with labels
                 }
                 
-                height += 40f; // Gap + recreation section header
-                height += 30f; // Enable recreation checkbox
+                height += 55f; // Gap + recreation section header
+                height += 50f; // Enable recreation checkbox
                 
                 if (Settings.enableRecreationBonus)
                 {
-                    height += 30f; // Recreation slider
+                    height += 50f; // Recreation slider
                 }
                 
-                height += 40f; // Gap + comfort section header
-                height += 30f; // Enable comfort checkbox
+                height += 55f; // Gap + comfort section header
+                height += 50f; // Enable comfort checkbox
                 
                 if (Settings.enableComfortBonus)
                 {
-                    height += 30f; // Comfort slider
+                    height += 50f; // Comfort slider
                 }
                 
-                height += 40f; // Gap + stress section header
-                height += 30f; // Enable stress checkbox
+                height += 55f; // Gap + stress section header
+                height += 50f; // Enable stress checkbox
                 
                 if (Settings.enableStressReduction)
                 {
-                    height += 30f; // Stress slider
+                    height += 50f; // Stress slider
                 }
                 
-                height += 40f; // Gap + skill section header
-                height += 30f; // Enable skills checkbox
+                height += 55f; // Gap + skill section header
+                height += 50f; // Enable skills checkbox
                 
                 if (Settings.enableSkillBonuses)
                 {
                     height += 90f; // 3 sliders with labels
                 }
                 
-                height += 40f; // Gap + chair quality section header
-                height += 30f; // Enable chair quality checkbox
+                height += 55f; // Gap + chair quality section header
+                height += 50f; // Enable chair quality checkbox
                 
                 if (Settings.enableChairQualityBonuses)
                 {
                     height += 90f; // 2 sliders + tiny text explanation
                 }
                 
-                height += 40f; // Gap + general settings header
+                height += 55f; // Gap + general settings header
                 height += 90f; // 3 general settings controls
             }
             

@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
     <name>[PL] Comfortable Fishing</name>
     <author>ProgrammerLily</author>
@@ -19,17 +18,34 @@
         <li>ludeon.rimworld</li>
         <li>ludeon.rimworld.odyssey</li>
     </loadAfter>
-    <description>Enhances fishing by allowing pawns to fish from chairs for bonus yield and speed. Works with any chair from any mod.
+    <description>Transform your colony's fishing experience into a luxurious, skill-building, zen-like activity! Why stand in the mud when you can catch fish in style?
 
-Features:
-- Pawns get fishing bonuses when sitting on chairs
-- Configurable yield and speed multipliers
-- Works with modded chairs automatically
-- Optional requirement for chairs to be in fishing zones
-- Pawns will prefer chairs when available for fishing
+UNIVERSAL CHAIR COMPATIBILITY
+Works with ANY chair from ANY mod - vanilla armchairs, modded thrones, camping chairs, you name it! The mod intelligently detects any sittable furniture.
 
-The mod automatically detects any chair (anything with isSittable property) from any mod, making it fully compatible with furniture mods.</description>
+FISHING BONUSES
+• Catch MORE fish (up to 2x yield!)
+• Fish FASTER (up to 2x speed!)
+• Your pawns will actively seek out chairs for their fishing adventures
+
+WELLNESS and RECREATION
+• Gain recreation/joy while peacefully fishing from chairs
+• Enjoy maximum comfort levels while seated
+• Reduce stress and prevent mental breaks - fishing becomes therapeutic!
+
+SKILL DEVELOPMENT
+• Enhanced Animals skill gain (up to 3x multiplier!)
+• Gain Intellectual skill from quiet contemplation
+• Develop Artistic abilities from scenic waterside inspiration
+
+FULLY CUSTOMIZABLE
+Every bonus can be individually toggled and fine-tuned in the mod settings. Want just the stress relief? No problem! Prefer only the fishing bonuses? You got it! Create your perfect fishing experience.
+
+SMART PLACEMENT
+Chairs automatically work when placed near fishing zones (configurable distance). Your pawns will prefer chairs when available, but won't break if none are around.
+
+Perfect for creating peaceful fishing retreats, boosting colony morale, or just making fishing more enjoyable and rewarding!</description>
     <packageId>programmerLily.comfortableFishing</packageId>
     <url>https://github.com/sam2332/Rimworld-ComfortableFishing</url>
-    <modVersion>1.0.1</modVersion>
+    <modVersion>2.0.0</modVersion>
 </ModMetaData>
