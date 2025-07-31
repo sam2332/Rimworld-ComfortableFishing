@@ -15,7 +15,10 @@ namespace ComfortableFishing
 
         public override void DoSettingsWindowContents(Rect inRect)
         {
-            Rect viewRect = new Rect(0f, 0f, inRect.width - 20f, 800f); // Adjust height as needed
+            // Calculate the total height needed for all content
+            float totalHeight = CalculateContentHeight();
+            
+            Rect viewRect = new Rect(0f, 0f, inRect.width - 20f, totalHeight);
             Rect scrollRect = new Rect(0f, 0f, inRect.width, inRect.height);
             
             Widgets.BeginScrollView(scrollRect, ref scrollPosition, viewRect);
@@ -139,6 +142,67 @@ namespace ComfortableFishing
             listingStandard.End();
             Widgets.EndScrollView();
             base.DoSettingsWindowContents(inRect);
+        }
+
+        private float CalculateContentHeight()
+        {
+            float height = 50f; // Base height for master toggle
+            
+            if (Settings.enableChairFishingBonus)
+            {
+                height += 40f; // Gap + bonus fish section header
+                height += 30f; // Enable fish bonuses checkbox
+                
+                if (Settings.enableFishBonus)
+                {
+                    height += 60f; // 2 sliders with labels
+                }
+                
+                height += 40f; // Gap + recreation section header
+                height += 30f; // Enable recreation checkbox
+                
+                if (Settings.enableRecreationBonus)
+                {
+                    height += 30f; // Recreation slider
+                }
+                
+                height += 40f; // Gap + comfort section header
+                height += 30f; // Enable comfort checkbox
+                
+                if (Settings.enableComfortBonus)
+                {
+                    height += 30f; // Comfort slider
+                }
+                
+                height += 40f; // Gap + stress section header
+                height += 30f; // Enable stress checkbox
+                
+                if (Settings.enableStressReduction)
+                {
+                    height += 30f; // Stress slider
+                }
+                
+                height += 40f; // Gap + skill section header
+                height += 30f; // Enable skills checkbox
+                
+                if (Settings.enableSkillBonuses)
+                {
+                    height += 90f; // 3 sliders with labels
+                }
+                
+                height += 40f; // Gap + chair quality section header
+                height += 30f; // Enable chair quality checkbox
+                
+                if (Settings.enableChairQualityBonuses)
+                {
+                    height += 90f; // 2 sliders + tiny text explanation
+                }
+                
+                height += 40f; // Gap + general settings header
+                height += 90f; // 3 general settings controls
+            }
+            
+            return height;
         }
 
         public override string SettingsCategory()
