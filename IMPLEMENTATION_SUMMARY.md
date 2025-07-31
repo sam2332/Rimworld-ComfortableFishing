@@ -43,6 +43,12 @@ Users can now configure individual bonuses with separate toggles and amounts:
 - **Configurable Reduction**: 10% - 90% stress reduction (adjustable via slider)
 - **All Break Types**: Affects minor, major, and extreme mental break thresholds
 
+#### E. Skill Bonuses (NEW!)
+- **Enhanced Fishing XP**: Multiplies Animals skill gain while fishing from chairs (1.0x - 3.0x)
+- **Intellectual Skill**: Gain Intellectual XP from contemplation and observation (0.001 - 0.05 per tick)
+- **Artistic Skill**: Gain Artistic XP from inspiration and peaceful environment (0.001 - 0.05 per tick)
+- **Real-time Learning**: All skill bonuses applied every tick while chair fishing
+
 ### 5. Enhanced User Interface & Settings
 - **Mod Settings Menu**: Accessible via Options → Mod Settings → Comfortable Fishing
 - **Master Toggle**: Enable/disable all chair fishing bonuses
@@ -58,7 +64,7 @@ Users can now configure individual bonuses with separate toggles and amounts:
 ## Technical Implementation
 
 ### Harmony Patches
-1. **JobDriver_Fish.MakeNewToils**: Modifies fishing speed when using chairs (Fish Bonus)
+1. **JobDriver_Fish.MakeNewToils**: Modifies fishing speed and provides skill bonuses when using chairs
 2. **FishingUtility.GetCatchesFor**: Applies yield bonus to fish catches (Fish Bonus)
 3. **WorkGiver_Fish.BestStandSpotFor**: Suggests chair positions for fishing
 4. **Pawn.TickRare**: Provides recreation gain over time (Recreation Bonus)
@@ -92,6 +98,12 @@ Users can now configure individual bonuses with separate toggles and amounts:
 - enableStressReduction: true/false (default: false)
 - stressReductionFactor: 0.1f - 1.0f (default: 0.5f = 50% reduction)
 
+// Skill Bonus Settings
+- enableSkillBonuses: true/false (default: false)
+- fishingSkillMultiplier: 1.0f - 3.0f (default: 2.0f = 2x Animals skill gain)
+- intellectualSkillRate: 0.001f - 0.05f (default: 0.02f per tick)
+- artisticSkillRate: 0.001f - 0.05f (default: 0.015f per tick)
+
 // General Settings
 - requireChairInZone: true/false
 - maxChairDistance: 0-5 tiles (default 2)
@@ -117,12 +129,14 @@ Users can now configure individual bonuses with separate toggles and amounts:
 ## Testing Recommendations
 1. Test each bonus type individually and in combination
 2. Verify toggles work correctly in mod settings
-3. Test with vanilla chairs (armchair, dining chair, etc.)
-4. Test with modded furniture (any mod with chairs)
-5. Verify bonuses work correctly near fishing zones
-6. Check settings menu functionality and sliders
-7. Confirm alert messages appear when enabled
-8. Test performance with multiple pawns fishing simultaneously
+3. Test skill bonuses by checking Animals, Intellectual, and Artistic skill gains
+4. Test with vanilla chairs (armchair, dining chair, etc.)
+5. Test with modded furniture (any mod with chairs)
+6. Verify bonuses work correctly near fishing zones
+7. Check settings menu functionality and sliders
+8. Confirm alert messages appear when enabled
+9. Test performance with multiple pawns fishing simultaneously
+10. Verify skill multipliers work correctly (check Animals skill XP gain rates)
 
 ## Future Enhancement Ideas
 1. **Joy Kind Integration**: Specify specific joy types for recreation bonus

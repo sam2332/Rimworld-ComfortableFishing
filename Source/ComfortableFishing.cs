@@ -43,6 +43,12 @@ namespace ComfortableFishing
         public bool enableStressReduction = false;
         public float stressReductionFactor = 0.5f; // Multiplier for mental break chance
         
+        // Skill Bonus Settings
+        public bool enableSkillBonuses = false;
+        public float fishingSkillMultiplier = 2.0f; // Multiplier for Animals (fishing) skill XP
+        public float intellectualSkillRate = 0.02f; // XP per tick for Intellectual 
+        public float artisticSkillRate = 0.015f; // XP per tick for Artistic
+        
         // General Settings
         public bool requireChairInZone = true;
         public int maxChairDistance = 2;
@@ -68,6 +74,12 @@ namespace ComfortableFishing
             // Stress Reduction
             Scribe_Values.Look(ref enableStressReduction, "enableStressReduction", false);
             Scribe_Values.Look(ref stressReductionFactor, "stressReductionFactor", 0.5f);
+            
+            // Skill Bonuses
+            Scribe_Values.Look(ref enableSkillBonuses, "enableSkillBonuses", false);
+            Scribe_Values.Look(ref fishingSkillMultiplier, "fishingSkillMultiplier", 2.0f);
+            Scribe_Values.Look(ref intellectualSkillRate, "intellectualSkillRate", 0.02f);
+            Scribe_Values.Look(ref artisticSkillRate, "artisticSkillRate", 0.015f);
             
             // General
             Scribe_Values.Look(ref requireChairInZone, "requireChairInZone", true);
@@ -149,6 +161,25 @@ namespace ComfortableFishing
                 {
                     listingStandard.Label("Stress Reduction: " + ((1f - Settings.stressReductionFactor) * 100f).ToString("F0") + "% less mental breaks");
                     Settings.stressReductionFactor = listingStandard.Slider(Settings.stressReductionFactor, 0.1f, 1.0f);
+                }
+                
+                listingStandard.Gap();
+                
+                // Skill Bonuses Section
+                listingStandard.Label("=== SKILL BONUSES ===".Colorize(Color.blue));
+                listingStandard.CheckboxLabeled("Enable Skill Bonuses", ref Settings.enableSkillBonuses,
+                    "Gain extra skill XP while fishing from chairs.");
+                
+                if (Settings.enableSkillBonuses)
+                {
+                    listingStandard.Label("Fishing Skill Multiplier: " + Settings.fishingSkillMultiplier.ToString("F1") + "x");
+                    Settings.fishingSkillMultiplier = listingStandard.Slider(Settings.fishingSkillMultiplier, 1.0f, 3.0f);
+                    
+                    listingStandard.Label("Intellectual XP Rate: " + Settings.intellectualSkillRate.ToString("F3") + " per tick");
+                    Settings.intellectualSkillRate = listingStandard.Slider(Settings.intellectualSkillRate, 0.001f, 0.05f);
+                    
+                    listingStandard.Label("Artistic XP Rate: " + Settings.artisticSkillRate.ToString("F3") + " per tick");
+                    Settings.artisticSkillRate = listingStandard.Slider(Settings.artisticSkillRate, 0.001f, 0.05f);
                 }
                 
                 listingStandard.Gap();
@@ -318,7 +349,7 @@ namespace ComfortableFishing
     }
 
     /// <summary>
-    /// Harmony patch to modify fishing speed when sitting on chairs
+    /// Harmony patch to modify fishing speed and provide skill bonuses when sitting on chairs
     /// </summary>
     [HarmonyPatch(typeof(JobDriver_Fish), "MakeNewToils")]
     public static class JobDriver_Fish_MakeNewToils_Patch
@@ -332,8 +363,7 @@ namespace ComfortableFishing
                     return;
 
                 // Check if settings are available and feature is enabled
-                if (ComfortableFishingMod.Settings?.enableChairFishingBonus != true || 
-                    ComfortableFishingMod.Settings?.enableFishBonus != true)
+                if (ComfortableFishingMod.Settings?.enableChairFishingBonus != true)
                     return;
 
                 var toils = __result.ToList();
@@ -374,29 +404,74 @@ namespace ComfortableFishing
                 if (!FishingChairUtility.IsChairValidForFishing(standingSpot, fishingSpot, pawn.Map))
                     return;
 
-                // Apply speed bonus by modifying the wait toil
-                float speedBonus = ComfortableFishingMod.Settings.speedMultiplier;
-                if (speedBonus <= 1.0f)
-                    return;
-
-                // Try to modify the toil's duration using reflection
-                var ticksField = typeof(Toil).GetField("ticksLeftToRun", BindingFlags.NonPublic | BindingFlags.Instance);
-                if (ticksField != null)
+                // Apply speed bonus by modifying the wait toil (if enabled)
+                if (ComfortableFishingMod.Settings.enableFishBonus)
                 {
-                    object ticksValue = ticksField.GetValue(waitToil);
-                    if (ticksValue is int originalTicks && originalTicks > 0)
+                    float speedBonus = ComfortableFishingMod.Settings.speedMultiplier;
+                    if (speedBonus > 1.0f)
                     {
-                        int newTicks = Mathf.RoundToInt(originalTicks / speedBonus);
-                        ticksField.SetValue(waitToil, newTicks);
-                        
-                        // Only show message if in game (not during loading)
-                        if (Current.ProgramState == ProgramState.Playing && PawnUtility.ShouldSendNotificationAbout(pawn))
+                        // Try to modify the toil's duration using reflection
+                        var ticksField = typeof(Toil).GetField("ticksLeftToRun", BindingFlags.NonPublic | BindingFlags.Instance);
+                        if (ticksField != null)
                         {
-                            string message = pawn.LabelShort + " is fishing comfortably from a chair (+" + 
-                                           ((speedBonus - 1f) * 100f).ToString("F0") + "% speed)";
-                            Messages.Message(message, pawn, MessageTypeDefOf.PositiveEvent, false);
+                            object ticksValue = ticksField.GetValue(waitToil);
+                            if (ticksValue is int originalTicks && originalTicks > 0)
+                            {
+                                int newTicks = Mathf.RoundToInt(originalTicks / speedBonus);
+                                ticksField.SetValue(waitToil, newTicks);
+                                
+                                // Only show message if in game (not during loading)
+                                if (Current.ProgramState == ProgramState.Playing && PawnUtility.ShouldSendNotificationAbout(pawn))
+                                {
+                                    string message = pawn.LabelShort + " is fishing comfortably from a chair (+" + 
+                                                   ((speedBonus - 1f) * 100f).ToString("F0") + "% speed)";
+                                    Messages.Message(message, pawn, MessageTypeDefOf.PositiveEvent, false);
+                                }
+                            }
                         }
                     }
+                }
+
+                // Add skill bonuses to the tick action (if enabled)
+                if (ComfortableFishingMod.Settings.enableSkillBonuses)
+                {
+                    // Store the original tick action
+                    var originalTickAction = waitToil.tickAction;
+
+                    // Create new tick action that includes skill bonuses
+                    waitToil.tickAction = () =>
+                    {
+                        // Call original tick action first (includes normal Animals skill gain)
+                        originalTickAction?.Invoke();
+
+                        // Add enhanced skill bonuses if still sitting on chair
+                        if (FishingChairUtility.IsPawnSittingOnChair(pawn))
+                        {
+                            Building currentChair = FishingChairUtility.GetChairPawnIsSittingOn(pawn);
+                            if (currentChair != null && 
+                                FishingChairUtility.IsChairValidForFishing(currentChair.Position, fishingSpot, pawn.Map))
+                            {
+                                // Enhanced fishing (Animals) skill - multiply the normal gain
+                                float extraFishingXP = 0.025f * (ComfortableFishingMod.Settings.fishingSkillMultiplier - 1.0f);
+                                if (extraFishingXP > 0f)
+                                {
+                                    pawn.skills.Learn(SkillDefOf.Animals, extraFishingXP);
+                                }
+
+                                // Intellectual skill - contemplation and observation
+                                if (ComfortableFishingMod.Settings.intellectualSkillRate > 0f)
+                                {
+                                    pawn.skills.Learn(SkillDefOf.Intellectual, ComfortableFishingMod.Settings.intellectualSkillRate);
+                                }
+
+                                // Artistic skill - inspiration from nature
+                                if (ComfortableFishingMod.Settings.artisticSkillRate > 0f)
+                                {
+                                    pawn.skills.Learn(SkillDefOf.Artistic, ComfortableFishingMod.Settings.artisticSkillRate);
+                                }
+                            }
+                        }
+                    };
                 }
                 
                 __result = toils;
