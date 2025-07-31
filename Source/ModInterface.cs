@@ -6,6 +6,7 @@ namespace ComfortableFishing
     public class ComfortableFishingMod : Mod
     {
         public static ComfortableFishingSettings Settings;
+        private static Vector2 scrollPosition = Vector2.zero;
 
         public ComfortableFishingMod(ModContentPack content) : base(content)
         {
@@ -14,8 +15,13 @@ namespace ComfortableFishing
 
         public override void DoSettingsWindowContents(Rect inRect)
         {
+            Rect viewRect = new Rect(0f, 0f, inRect.width - 20f, 800f); // Adjust height as needed
+            Rect scrollRect = new Rect(0f, 0f, inRect.width, inRect.height);
+            
+            Widgets.BeginScrollView(scrollRect, ref scrollPosition, viewRect);
+            
             Listing_Standard listingStandard = new Listing_Standard();
-            listingStandard.Begin(inRect);
+            listingStandard.Begin(viewRect);
 
             listingStandard.CheckboxLabeled("Enable Chair Fishing Bonuses", ref Settings.enableChairFishingBonus, 
                 "Master toggle for all chair fishing bonuses.");
@@ -131,6 +137,7 @@ namespace ComfortableFishing
             }
 
             listingStandard.End();
+            Widgets.EndScrollView();
             base.DoSettingsWindowContents(inRect);
         }
 

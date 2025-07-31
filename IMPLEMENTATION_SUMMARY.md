@@ -122,9 +122,30 @@ Users can now configure individual bonuses with separate toggles and amounts:
 - **Safe Access**: Proper error handling for reflection calls
 - **Mod Compatibility**: Avoids direct dependencies on internal implementations
 
+## Modular Architecture (UPDATED!)
+The mod has been refactored into a **single-use module design** for better maintainability:
+
+### Core Modules
+- **ModCore.cs** - Harmony initialization and mod startup
+- **ModSettings.cs** - Configuration data and settings persistence  
+- **ModInterface.cs** - Settings UI and user interface
+
+### Feature Modules
+- **ChairUtility.cs** - Chair detection, validation, and quality calculations
+- **FishingPatches.cs** - Core fishing mechanics (speed, yield, spot selection)
+- **WellBeingPatches.cs** - Recreation and comfort bonus systems
+- **StressPatches.cs** - Mental break reduction and stress management
+
+### Benefits of Modular Design
+- **Single Responsibility**: Each module has one clear purpose
+- **Easier Maintenance**: Changes to one feature don't affect others
+- **Better Testing**: Modules can be tested independently
+- **Reduced Conflicts**: Smaller files reduce merge conflicts
+- **Cleaner Code**: Purpose of each file is immediately obvious
+
 ## Files Modified
-- `Source/ComfortableFishing.cs` - Main mod implementation with new bonus systems
-- `IMPLEMENTATION_SUMMARY.md` - Updated documentation
+- **Refactored**: Split monolithic `ComfortableFishing.cs` into 7 focused modules
+- **Updated**: `IMPLEMENTATION_SUMMARY.md` - Documentation reflects new structure
 
 ## Testing Recommendations
 1. Test each bonus type individually and in combination
